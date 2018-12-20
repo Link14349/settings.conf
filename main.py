@@ -19,6 +19,8 @@ Options:
 	-d, --default       Open and edit the stgc configuration file
 	-h, --help          Display help information
 	-e, --error         Display the error information
+	-s, --sudo          Use administrator privileges
+	-f, --flags         Set the installing flags
 	""")
 
 program.bind("os",src.sysType.type())
@@ -38,9 +40,11 @@ def main():
 	config_f.close()
 	# parse the flags
 	try:
-		opts,args = getopt.getopt(sys.argv[1:], "vhdr:ie", ["version","help","default","read=","error"])
+		opts,args = getopt.getopt(sys.argv[1:], "vhdr:iesf:", ["version", "help", "default", "read=", "error", "sudo", "falgs="])
 		install = False
 		debug = False
+		sudo = False
+		flags = ""
 		readFile = "installer.stgc"
 		for opt, arg in opts:
 			if opt == "-v" or opt == "--version":
@@ -61,6 +65,10 @@ def main():
 				debug = True
 			elif opt == "-r" or opt == "--read":
 				readFile = arg
+			elif opt == "-s" or opt == "--sudo":
+				sudo = True
+			elif opt == "-f" or opt == "--flags":
+				flags = arg
 	except getopt.GetoptError as e:
 		program.usage()
 		exit(1)
@@ -73,7 +81,13 @@ def main():
 		stgc = stgc_f.read()
 		stgc_f.close()
 		# print(stgc)
-		tree = Syntax()
-		tree.parse(stgc)
+		tree = Syntax(config)
+		flags = flags.split(";")
+		for i in range(0,len(flags)):
+			flags[i] = "-" + flags[i] + " "
+		test = ""
+		for i in flags:
+			test += i
+		tree.parse(stgc, sudo, test)
 if __name__ == "__main__":
 	main()
